@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:munit="http://www.mulesoft.org/schema/mule/munit"
+	xmlns:munit-tools="http://www.mulesoft.org/schema/mule/munit-tools" xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xsi:schemaLocation="
+		http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+		http://www.mulesoft.org/schema/mule/munit http://www.mulesoft.org/schema/mule/munit/current/mule-munit.xsd
+		http://www.mulesoft.org/schema/mule/munit-tools  http://www.mulesoft.org/schema/mule/munit-tools/current/mule-munit-tools.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd">
+	<munit:config name="standardize-test-suite.xml" doc:name="MUnit configuration"/>
+	<munit:test name="testUnitedTransformation" description="Test United DataWeave transformation" doc:id="709674d8-c606-4be6-b1f0-5f52ec23bc37">
+
+		
+		<munit:behavior >
+			
+			
+			
+			<munit-tools:mock-when doc:name="United HTTP Request" doc:id="b17d1151-9792-4916-b4d3-e7aab382c43f" processor="http:request">
+				<munit-tools:then-return >
+					<munit-tools:payload value='#[{"flights":[{"code":"ER38sd","price":400,"origin":"MUA","destination":"SFO","departureDate":"2015/03/20","planeType":"Boeing 737","airlineName":"United","emptySeats":0}]}]' />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+			<munit-tools:spy doc:name="Spy: United http request" processor="http:request">
+
+      		<munit-tools:with-attributes>
+      		</munit-tools:with-attributes>
+				<munit-tools:before-call >
+					<logger level="INFO" doc:name="Logger" doc:id="ddce8f4a-cb85-48f9-b90a-23f79698316c" message="#[payload]"/>
+					<munit-tools:assert-that doc:name="Assert that" doc:id="f7797b33-8098-44bd-a9f2-2d928cabb98b" expression="#[payload]" is="#[MunitTools::nullValue()]" message="Payload should be null before calling United endpoint"/>
+				
+</munit-tools:before-call>
+				<munit-tools:after-call>
+					<logger level="INFO" doc:name="Logger" doc:id="bf63dfcc-a2b8-4c94-9ef0-466afe5d0083" message="#[isEmpty(payload)]"/>
+					<munit-tools:assert-that doc:name="Assert that" doc:id="7f97579a-9069-4058-9b5f-e2f071c8bed0" expression="#[payload]" is="#[MunitTools::notNullValue()]" message="Payload should not be null"/>
+      
+</munit-tools:after-call>
+
+    </munit-tools:spy>
+
+  </munit:behavior>
+		<munit:execution>
+			<flow-ref doc:name="getUnited" doc:id="305eb9d9-470e-4b23-baff-65952c8fe991" name="getUnited"/>
+		</munit:execution>
+		<munit:validation>
+			<munit-tools:verify-call doc:name="Verify call" doc:id="3d350eca-17d0-41dc-8fcc-925b4862c8fc" processor="http:request"/>
+			<munit-tools:assert-that doc:name="Assert that" doc:id="7851950d-af65-49fe-abf8-8985b230e9ac" expression="#[payload]" is='#[ MunitTools::equalTo( [{"airline": "United","code": "ER38SD","price": 400,"departureDate": "2015/03/20","fromAirport": "MUA","toAirport": "SFO","plane": "Boeing 737","emptySeats": 0,"totalSeats": 300}] ) ]' message="Payload does not match against expected transformation"/>
+		
+</munit:validation>
+		
+		
+		
+	</munit:test>
+  
+	<munit:test name="testPayloadNullForUnited" description="MUnit Test" doc:id="2550ddd1-ccd1-4494-aa5e-492aafa6e73d" ignore="true">
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="United HTTP Request" doc:id="9c047e5a-f0e8-4e89-babc-5dcd44829aeb" processor="http:request" >
+				<munit-tools:then-return >
+					<munit-tools:payload value='#["" as Binary]' />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<flow-ref doc:name="getUnited" doc:id="305eb9d9-470e-4b23-baff-65952c8fe991" name="getUnited" />
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-that doc:name="Assert that" doc:id="d28c02a2-d956-471a-9531-dd38d4ffbc4d" expression="#[payload]" is="#[MunitTools::equalTo([])]" message="United flow should return empty array for invalid requests"/>
+		</munit:validation>
+	</munit:test>
+
+
+
+
+</mule>
