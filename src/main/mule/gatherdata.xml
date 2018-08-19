@@ -1,10 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http"
-	xmlns="http://www.mulesoft.org/schema/mule/core"
-	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+<mule xmlns:validation="http://www.mulesoft.org/schema/mule/validation" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
 http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
-http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/validation http://www.mulesoft.org/schema/mule/validation/current/mule-validation.xsd">
+
 	<flow name="flights" doc:id="b370431e-7c48-4222-8759-0f238c5f0965" >
 		<http:listener doc:name="Listener" doc:id="b8e62e70-a159-4922-b10b-e13e4ea13965" config-ref="HTTP_Listener_config" path="/flights/{destination}" allowedMethods="GET">
 			<http:response>
@@ -14,10 +16,21 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 	SERVICEROUTE : vars.serverID
 }]]]></http:headers>
 			</http:response>
-		</http:listener>
+			<http:error-response >
+				<http:body ><![CDATA[#[output application/json ---
+{
+"error.description": error.description,
+"error.type": error.errorType,
+"error.exceptionClass": error.exception.class
+}
+]]]></http:body>
+			</http:error-response>
+		
+</http:listener>
 		<set-variable value="#[attributes.uriParams.destination]" doc:name="destination" doc:id="c24cc62f-673a-49c0-83b6-71153a7c3b8b" variableName="destinationCode"/>
 		<set-variable value="#[attributes.queryParams.maxprice]" doc:name="maxPrice" doc:id="ceb2692f-9291-4b92-be33-43fcad0ce0da" variableName="maxPrice"/>
 		<set-variable value="#[attributes.headers.agencyid]" doc:name="agencyID" doc:id="33b94ad4-d0bf-4a98-bb92-fbfa28ddc099" variableName="agencyID"/>
+		<flow-ref doc:name="validateParameters" doc:id="347afc43-3dfb-409a-8059-fa778f8cdefd" name="validateParameters"/>
 		<scatter-gather doc:name="Scatter-Gather" doc:id="5529d0bf-9c13-4d54-a152-b1d575e7468d" >
 			<route >
 				<flow-ref doc:name="getUnited" doc:id="0128b1de-7307-45d9-b363-5073e51bb791" name="getUnited"/>
@@ -25,7 +38,11 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 			<route >
 				<flow-ref doc:name="getDelta" doc:id="c4f0a492-02f7-4d62-8f3d-0ac4e0112e36" name="getDelta"/>
 			</route>
-		</scatter-gather>
+			<route >
+				<flow-ref doc:name="Flow Reference" doc:id="7af3151a-e004-4f47-a2c1-bb298a7e69c6" name="getAmerican"/>
+			</route>
+		
+</scatter-gather>
 		<ee:transform doc:name="Convert to JSON" doc:id="9249779c-bddd-4393-8719-3b51960cdfa6" >
 			<ee:message >
 				<ee:set-payload ><![CDATA[%dw 2.0
@@ -42,4 +59,11 @@ using (flattened = flatten(payload..payload as Array) )
 		</ee:transform>
 		<set-variable value='#[vars.agencyID ++ " - 42JDKFS"]' doc:name="serverID" doc:id="da33f5b9-e9c1-47a9-bf86-bf62671743f9" variableName="serverID" />
 	</flow>
+	<sub-flow name="validateParameters" doc:id="054764b7-1962-45fe-8bdd-95c5c459a702" >
+		<validation:is-not-null doc:name="maxPrice" doc:id="9de8f120-75b6-40e7-a792-df6984b2b1b0" value="#[vars.maxPrice]" message="Max price is not set. Please pass in a maxprice query parameter"/>
+		<validation:is-not-null doc:name="Is not null" doc:id="a2737eac-b173-4cb8-acbe-f8ad373a8432" value="#[vars.agencyID]" message="Agency ID is not set. Please Set the Header: AGENCYID">
+			<error-mapping sourceType="VALIDATION:NULL" targetType="APP:AGENTID_NOTSET" />
+		</validation:is-not-null>
+	</sub-flow>
+
 </mule>
