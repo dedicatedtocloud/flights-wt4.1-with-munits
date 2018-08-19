@@ -9,30 +9,29 @@
 		http://www.mulesoft.org/schema/mule/munit-tools  http://www.mulesoft.org/schema/mule/munit-tools/current/mule-munit-tools.xsd
 http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd">
 	<munit:config name="standardize-test-suite.xml" doc:name="MUnit configuration"/>
-	<munit:test name="testUnitedTransformation" description="Test United DataWeave transformation" doc:id="709674d8-c606-4be6-b1f0-5f52ec23bc37">
-
-		
+	
+	<munit:test name="testUnitedTransformation" description="Test United DataWeave transformation" doc:id="709674d8-c606-4be6-b1f0-5f52ec23bc37" ignore="true">
+	
 		<munit:behavior >
-			
-			
-			
-			<munit-tools:mock-when doc:name="United HTTP Request" doc:id="b17d1151-9792-4916-b4d3-e7aab382c43f" processor="http:request">
+			<munit-tools:mock-when doc:name="United HTTP Request" doc:id="a2fd987e-b135-4801-afe1-92ad536c465f" processor="http:request">
 				<munit-tools:then-return >
 					<munit-tools:payload value='#[{"flights":[{"code":"ER38sd","price":400,"origin":"MUA","destination":"SFO","departureDate":"2015/03/20","planeType":"Boeing 737","airlineName":"United","emptySeats":0}]}]' />
 				</munit-tools:then-return>
 			</munit-tools:mock-when>
+			
 			<munit-tools:spy doc:name="Spy: United http request" processor="http:request">
 
       		<munit-tools:with-attributes>
       		</munit-tools:with-attributes>
-				<munit-tools:before-call >
-					<logger level="INFO" doc:name="Logger" doc:id="ddce8f4a-cb85-48f9-b90a-23f79698316c" message="#[payload]"/>
-					<munit-tools:assert-that doc:name="Assert that" doc:id="f7797b33-8098-44bd-a9f2-2d928cabb98b" expression="#[payload]" is="#[MunitTools::nullValue()]" message="Payload should be null before calling United endpoint"/>
-				
-</munit-tools:before-call>
-				<munit-tools:after-call>
-					<logger level="INFO" doc:name="Logger" doc:id="bf63dfcc-a2b8-4c94-9ef0-466afe5d0083" message="#[isEmpty(payload)]"/>
-					<munit-tools:assert-that doc:name="Assert that" doc:id="7f97579a-9069-4058-9b5f-e2f071c8bed0" expression="#[payload]" is="#[MunitTools::notNullValue()]" message="Payload should not be null"/>
+			
+			<munit-tools:before-call >
+				<logger level="INFO" doc:name="Logger" doc:id="ddce8f4a-cb85-48f9-b90a-23f79698316c" message="Before Call Processor ...#[payload]"/>
+				<munit-tools:assert-that doc:name="Assert that" doc:id="e1df2dc3-ecb2-4d5a-b3a5-d34a68e4fd01" expression="#[payload]" is="#[MunitTools::nullValue()]" message="Payload should be null before calling United endpoint"/>
+			</munit-tools:before-call>
+			
+			<munit-tools:after-call>
+					<logger level="INFO" doc:name="Logger" doc:id="bf63dfcc-a2b8-4c94-9ef0-466afe5d0083" message="After Call Processor ...#[payload]#[isEmpty(payload)]"/>
+					<munit-tools:assert-that doc:name="Assert that" doc:id="403d5d46-6625-4547-936c-8f2399347df6" expression="#[payload]" is="#[MunitTools::notNullValue()]" message="Payload should not be null"/>
       
 </munit-tools:after-call>
 
@@ -44,31 +43,28 @@ http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/htt
 		</munit:execution>
 		<munit:validation>
 			<munit-tools:verify-call doc:name="Verify call" doc:id="3d350eca-17d0-41dc-8fcc-925b4862c8fc" processor="http:request"/>
-			<munit-tools:assert-that doc:name="Assert that" doc:id="7851950d-af65-49fe-abf8-8985b230e9ac" expression="#[payload]" is='#[ MunitTools::equalTo( [{"airline": "United","code": "ER38SD","price": 400,"departureDate": "2015/03/20","fromAirport": "MUA","toAirport": "SFO","plane": "Boeing 737","emptySeats": 0,"totalSeats": 300}] ) ]' message="Payload does not match against expected transformation"/>
+			<logger level="INFO" doc:name="Logger" doc:id="a30b8391-7d30-4679-a2c4-342495088d47" message="After Verify Call Processor ...#[payload]"/>
+			<munit-tools:assert-that doc:name="Assert that" doc:id="9d4d7b44-746a-4acc-89b0-9147da4b5f12" expression="#[payload]" message="Payload does not match against expected transformation" is='#[MunitTools::equalTo([{"airline": "United","code": "ER38SD","price": 400,"departureDate": "2015/03/20","fromAirport": "MUA","toAirport": "SFO","plane": "Boeing 737","emptySeats": 0,"totalSeats": 300}])]'/>
 		
 </munit:validation>
 		
 		
 		
 	</munit:test>
-  
-	<munit:test name="testPayloadNullForUnited" description="MUnit Test" doc:id="2550ddd1-ccd1-4494-aa5e-492aafa6e73d" ignore="true">
+	<munit:test name="testPayloadNullForUnited" description="MUnit Test" doc:id="1c3ad3f5-2b76-4410-bc41-70e0313ef17a" ignore="true">
 		<munit:behavior >
-			<munit-tools:mock-when doc:name="United HTTP Request" doc:id="9c047e5a-f0e8-4e89-babc-5dcd44829aeb" processor="http:request" >
+			<set-variable value="SFO" doc:name="Set Variable" doc:id="62851242-5f0e-4e45-9018-03aecfdd3383" variableName="destinationCode"/>
+			<flow-ref doc:name="getUnited" doc:id="c6ec9a5e-ee84-4290-9168-6e07d09225d2" name="getUnited"/>
+			<munit-tools:mock-when doc:name="United HTTP Request" doc:id="a2fd987e-b135-4801-afe1-92ad536c465f" processor="http:request">
 				<munit-tools:then-return >
 					<munit-tools:payload value='#["" as Binary]' />
 				</munit-tools:then-return>
 			</munit-tools:mock-when>
 		</munit:behavior>
-		<munit:execution >
-			<flow-ref doc:name="getUnited" doc:id="305eb9d9-470e-4b23-baff-65952c8fe991" name="getUnited" />
-		</munit:execution>
 		<munit:validation >
-			<munit-tools:assert-that doc:name="Assert that" doc:id="d28c02a2-d956-471a-9531-dd38d4ffbc4d" expression="#[payload]" is="#[MunitTools::equalTo([])]" message="United flow should return empty array for invalid requests"/>
+			<munit-tools:assert-that doc:name="Assert that" doc:id="9129f6c1-38f3-42d0-a766-c680019fef79" expression="#[payload]" is='#[MunitTools::equalTo([{"airline": "United","code": "ER38SD","price": 400,"departureDate": "2015/03/20","fromAirport": "MUA","toAirport": "SFO","plane": "Boeing 737","emptySeats": 0,"totalSeats": 300}])]' message="United flow should return empty array for invalid requests"/>
 		</munit:validation>
 	</munit:test>
-
-
 
 
 </mule>

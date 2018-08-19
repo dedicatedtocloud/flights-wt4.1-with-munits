@@ -5,17 +5,15 @@
 	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
 http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
 http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
-
 	<flow name="flights" doc:id="b370431e-7c48-4222-8759-0f238c5f0965" >
-		<http:listener doc:name="Listener" doc:id="108ad9c4-01de-4dc7-8089-8dd6c0fb74ba" config-ref="HTTP_Listener_config" path="/flights/{destination}">
-			<http:response >
+		<http:listener doc:name="Listener" doc:id="b8e62e70-a159-4922-b10b-e13e4ea13965" config-ref="HTTP_Listener_config" path="/flights/{destination}" allowedMethods="GET">
+			<http:response>
 				<http:headers ><![CDATA[#[output applicaton/java
 ---
 {
 	SERVICEROUTE : vars.serverID
 }]]]></http:headers>
 			</http:response>
-
 		</http:listener>
 		<set-variable value="#[attributes.uriParams.destination]" doc:name="destination" doc:id="c24cc62f-673a-49c0-83b6-71153a7c3b8b" variableName="destinationCode"/>
 		<set-variable value="#[attributes.queryParams.maxprice]" doc:name="maxPrice" doc:id="ceb2692f-9291-4b92-be33-43fcad0ce0da" variableName="maxPrice"/>
